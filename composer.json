@@ -1,0 +1,34 @@
+{
+    "name": "klipper/import",
+    "type": "library",
+    "description": "Import component of Klipper",
+    "license": "MIT",
+    "authors": [
+        {
+            "name": "François Pluchino",
+            "email": "francois.pluchino@klipper.dev"
+        }
+    ],
+    "minimum-stability": "dev",
+    "prefer-stable": true,
+    "require": {
+        "php": "^7.4.0|^8.0.0",
+        "klipper/metadata": "^2.0.0",
+        "phpoffice/phpspreadsheet": "^1.15.0",
+        "symfony/mime": "^5.2.0"
+    },
+    "require-dev": {
+        "klipper/security": "^2.0.0"
+    },
+    "autoload": {
+        "psr-4": { "Klipper\\Component\\Import\\": "" },
+        "exclude-from-classmap": [
+            "**/Tests/"
+        ]
+    },
+    "extra": {
+        "branch-alias": {
+            "dev-master": "2.0-dev"
+        }
+    }
+}
