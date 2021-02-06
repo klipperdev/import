@@ -49,6 +49,13 @@ interface ImportInterface extends
     /**
      * @return static
      */
+    public function setStatusCode(?string $statusCode);
+
+    public function getStatusCode(): ?string;
+
+    /**
+     * @return static
+     */
     public function setStartedAt(?\DateTimeInterface $startedAt);
 
     public function getStartedAt(): ?\DateTimeInterface;

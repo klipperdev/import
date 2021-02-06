@@ -65,6 +65,17 @@ abstract class AbstractImport implements ImportInterface
     protected ?string $status = null;
 
     /**
+     * @ORM\Column(type="string", length=128, nullable=true)
+     *
+     * @Assert\Type(type="string")
+     * @Assert\Length(min=0, max=128)
+     *
+     * @Serializer\Expose
+     * @Serializer\ReadOnly
+     */
+    protected ?string $statusCode = null;
+
+    /**
      * @ORM\Column(type="datetime", nullable=true)
      *
      * @Serializer\Expose
@@ -155,6 +166,21 @@ abstract class AbstractImport implements ImportInterface
     public function getStatus(): ?string
     {
         return $this->status;
+    }
+
+    /**
+     * @return static
+     */
+    public function setStatusCode(?string $statusCode): self
+    {
+        $this->statusCode = $statusCode;
+
+        return $this;
+    }
+
+    public function getStatusCode(): ?string
+    {
+        return $this->statusCode;
     }
 
     public function setStartedAt(?\DateTimeInterface $startedAt): self
