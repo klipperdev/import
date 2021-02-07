@@ -29,6 +29,7 @@ class StandardImportAdapter implements ImportAdapterInterface
         $domainTarget = $context->getDomainTarget();
         $metaTarget = $context->getMetadataTarget();
         $fieldIdentifier = $metaTarget->getFieldIdentifier();
+        $mappingColumns = $context->getMappingColumns();
         $locale = $context->getLocale();
         $prevLocale = \Locale::getDefault();
         $rowIterator = $sheet->getRowIterator(2);
@@ -43,6 +44,15 @@ class StandardImportAdapter implements ImportAdapterInterface
         foreach ($rowIterator as $row) {
             $rowIndex = $row->getRowIndex();
             $data = [];
+            $fieldIdentifierValue = null;
+
+            if (\array_key_exists($fieldIdentifier, $mappingColumns)) {
+                $idVal = $sheet->getCellByColumnAndRow($mappingColumns[$fieldIdentifier], $rowIndex)->getValue();
+
+                if (!empty($idVal)) {
+                    $fieldIdentifierValue = $idVal;
+                }
+            }
 
             foreach ($context->getMappingFields() as $field => $colIndex) {
                 $data[$field] = $sheet->getCellByColumnAndRow($colIndex, $rowIndex)->getValue();
@@ -52,7 +62,7 @@ class StandardImportAdapter implements ImportAdapterInterface
                 $data[$association] = $sheet->getCellByColumnAndRow($colIndex, $rowIndex)->getValue();
             }
 
-            $object = $this->findObject($domainTarget, $data[$fieldIdentifier] ?? null);
+            $object = $this->findObject($domainTarget, $fieldIdentifierValue);
 
             if (null === $object) {
                 $context->setResultError(
