@@ -65,10 +65,10 @@ abstract class AbstractImport implements ImportInterface
     protected ?string $status = null;
 
     /**
-     * @ORM\Column(type="string", length=128, nullable=true)
+     * @ORM\Column(type="text", nullable=true)
      *
      * @Assert\Type(type="string")
-     * @Assert\Length(min=0, max=128)
+     * @Assert\Length(min=0, max=65535)
      *
      * @Serializer\Expose
      * @Serializer\ReadOnly

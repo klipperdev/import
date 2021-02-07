@@ -18,16 +18,24 @@ use Klipper\Component\Metadata\ObjectMetadataInterface;
 use Klipper\Component\Resource\Domain\DomainInterface;
 use Klipper\Component\Resource\Domain\DomainManagerInterface;
 use Klipper\Component\Resource\ResourceInterface;
-use Klipper\Component\Resource\ResourceListInterface;
 use PhpOffice\PhpSpreadsheet\Spreadsheet;
 use PhpOffice\PhpSpreadsheet\Worksheet\Worksheet;
 use PhpOffice\PhpSpreadsheet\Writer\IWriter;
+use Symfony\Component\Form\FormFactoryInterface;
+use Symfony\Component\PropertyAccess\PropertyAccessorInterface;
+use Symfony\Contracts\Translation\TranslatorInterface;
 
 /**
  * @author François Pluchino <francois.pluchino@klipper.dev>
  */
 interface ImportContextInterface
 {
+    public function getFormFactory(): FormFactoryInterface;
+
+    public function getTranslator(): TranslatorInterface;
+
+    public function getPropertyAccessor(): PropertyAccessorInterface;
+
     public function getDomainManager(): DomainManagerInterface;
 
     public function getContentManager(): ContentManagerInterface;
@@ -66,7 +74,9 @@ interface ImportContextInterface
 
     public function getImportMessageIndex(): int;
 
-    public function setResult(ResourceListInterface $resourceList, int $rowIndex): void;
+    public function setResult(ResourceInterface $resource, int $rowIndex): void;
+
+    public function setResultError(int $rowIndex, $message): void;
 
     public function saveImport(): ResourceInterface;
 }

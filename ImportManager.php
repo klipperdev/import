@@ -22,12 +22,18 @@ use Klipper\Component\Resource\Domain\DomainManagerInterface;
 use PhpOffice\PhpSpreadsheet\IOFactory;
 use PhpOffice\PhpSpreadsheet\Worksheet\Worksheet;
 use PhpOffice\PhpSpreadsheet\Writer\IWriter;
+use Symfony\Component\Form\FormFactoryInterface;
+use Symfony\Contracts\Translation\TranslatorInterface;
 
 /**
  * @author François Pluchino <francois.pluchino@klipper.dev>
  */
 class ImportManager implements ImportManagerInterface
 {
+    private FormFactoryInterface $formFactory;
+
+    private TranslatorInterface $translator;
+
     private DomainManagerInterface $domainManager;
 
     private ContentManagerInterface $contentManager;
@@ -43,11 +49,15 @@ class ImportManager implements ImportManagerInterface
      * @param ImportAdapterInterface[] $adapters
      */
     public function __construct(
+        FormFactoryInterface $formFactory,
+        TranslatorInterface $translator,
         DomainManagerInterface $domainManager,
         ContentManagerInterface $contentManager,
         MetadataManagerInterface $metadataManager,
         array $adapters
     ) {
+        $this->formFactory = $formFactory;
+        $this->translator = $translator;
         $this->domainManager = $domainManager;
         $this->contentManager = $contentManager;
         $this->metadataManager = $metadataManager;
@@ -206,15 +216,17 @@ class ImportManager implements ImportManagerInterface
         $lastIndex = 0;
 
         foreach ($columns as $column => $index) {
-            if ($metadataTarget->hasFieldByName($column)) {
+            if ($metadataTarget->hasFieldByName($column) && !$metadataTarget->getFieldByName($column)->isReadOnly()) {
                 $mappingFields[$column] = $index;
                 $mappingColumns[$column] = $index;
-                ++$lastIndex;
-            } elseif ($metadataTarget->hasAssociationByName($column)) {
+            } elseif ($metadataTarget->hasAssociationByName($column) && !$metadataTarget->getAssociationByName($column)->isReadOnly()) {
                 $mappingAssociations[$column] = $index;
                 $mappingColumns[$column] = $index;
-                ++$lastIndex;
+            } else {
+                $mappingColumns[$column] = $index;
             }
+
+            ++$lastIndex;
         }
 
         try {
@@ -234,6 +246,8 @@ class ImportManager implements ImportManagerInterface
         $this->prepareResultFile($metadataTarget, $activeSheet, $writer, $file, $mappingColumns, $lastIndex);
 
         $config = new ImportContext(
+            $this->formFactory,
+            $this->translator,
             $this->domainManager,
             $this->contentManager,
             $this->metadataManager,
@@ -273,7 +287,7 @@ class ImportManager implements ImportManagerInterface
 
             return false;
         } catch (\Throwable $e) {
-            $import->setStatusCode(ImportErrorCodes::UNEXPECTED_ERROR);
+            $import->setStatusCode(ImportErrorCodes::UNEXPECTED_ERROR.': '.$e->getMessage());
 
             return false;
         }

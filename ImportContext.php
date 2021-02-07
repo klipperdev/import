@@ -18,20 +18,30 @@ use Klipper\Component\Metadata\ObjectMetadataInterface;
 use Klipper\Component\Resource\Domain\DomainInterface;
 use Klipper\Component\Resource\Domain\DomainManagerInterface;
 use Klipper\Component\Resource\ResourceInterface;
-use Klipper\Component\Resource\ResourceListInterface;
+use Klipper\Component\Resource\ResourceStatutes;
 use PhpOffice\PhpSpreadsheet\Spreadsheet;
 use PhpOffice\PhpSpreadsheet\Worksheet\Worksheet;
 use PhpOffice\PhpSpreadsheet\Writer\IWriter;
+use Symfony\Component\Form\FormError;
+use Symfony\Component\Form\FormErrorIterator;
+use Symfony\Component\Form\FormFactoryInterface;
 use Symfony\Component\PropertyAccess\PropertyAccess;
 use Symfony\Component\PropertyAccess\PropertyAccessorInterface;
-use Symfony\Component\Validator\ConstraintViolationInterface;
+use function Symfony\Component\String\b;
 use Symfony\Component\Validator\ConstraintViolationListInterface;
+use Symfony\Contracts\Translation\TranslatorInterface;
 
 /**
  * @author François Pluchino <francois.pluchino@klipper.dev>
  */
 class ImportContext implements ImportContextInterface
 {
+    private const DEFAULT_ROW_HEIGHT = 15;
+
+    private FormFactoryInterface $formFactory;
+
+    private TranslatorInterface $translator;
+
     private DomainManagerInterface $domainManager;
 
     private ContentManagerInterface $contentManager;
@@ -63,6 +73,8 @@ class ImportContext implements ImportContextInterface
     private PropertyAccessorInterface $propertyAccessor;
 
     public function __construct(
+        FormFactoryInterface $formFactory,
+        TranslatorInterface $translator,
         DomainManagerInterface $domainManager,
         ContentManagerInterface $contentManager,
         MetadataManagerInterface $metadataManager,
@@ -79,6 +91,8 @@ class ImportContext implements ImportContextInterface
         string $file,
         ?PropertyAccessorInterface $propertyAccessor = null
     ) {
+        $this->formFactory = $formFactory;
+        $this->translator = $translator;
         $this->domainManager = $domainManager;
         $this->contentManager = $contentManager;
         $this->metadataManager = $metadataManager;
@@ -94,6 +108,21 @@ class ImportContext implements ImportContextInterface
         $this->writer = $writer;
         $this->file = $file;
         $this->propertyAccessor = $propertyAccessor ?? PropertyAccess::createPropertyAccessor();
+    }
+
+    public function getFormFactory(): FormFactoryInterface
+    {
+        return $this->formFactory;
+    }
+
+    public function getTranslator(): TranslatorInterface
+    {
+        return $this->translator;
+    }
+
+    public function getPropertyAccessor(): PropertyAccessorInterface
+    {
+        return $this->propertyAccessor;
     }
 
     public function getDomainManager(): DomainManagerInterface
@@ -193,38 +222,50 @@ class ImportContext implements ImportContextInterface
         return $this->mappingColumns['@import_message'] ?? \count($this->mappingColumns) + 2;
     }
 
-    public function setResult(ResourceListInterface $resourceList, int $rowIndex): void
+    public function setResult(ResourceInterface $resource, int $rowIndex): void
     {
-        $resources = $resourceList->getResources();
-        $currentRowIndex = $rowIndex;
         $sheet = $this->getActiveSheet();
-        $fieldIdentifier = $this->metadataTarget->getFieldIdentifier();
-        $idColIndex = $this->getFieldIdentifierIndex();
+
+        if ($resource->isValid()) {
+            $this->import->setSuccessCount($this->import->getSuccessCount() + 1);
+        } else {
+            $this->import->setErrorCount($this->import->getErrorCount() + 1);
+        }
+
+        // Inject Id
+        $id = $this->propertyAccessor->getValue($resource->getRealData(), $this->metadataTarget->getFieldIdentifier());
+        $sheet->setCellValueByColumnAndRow($this->getFieldIdentifierIndex(), $rowIndex, $id);
+
+        // Inject status
+        $sheet->setCellValueByColumnAndRow($this->getImportStatusIndex(), $rowIndex, $resource->getStatus());
+
+        // Inject message
+        $message = $resource->isValid() ? null : $this->buildErrors($resource->getFormErrors());
+        $sheet->setCellValueByColumnAndRow($this->getImportMessageIndex(), $rowIndex, $message);
+
+        $rowDim = $sheet->getRowDimension($rowIndex);
+        $finalVal = $sheet->getCellByColumnAndRow($this->getImportMessageIndex(), $rowIndex)->getValue();
+        $lineHeight = self::DEFAULT_ROW_HEIGHT;
+
+        if (\is_string($finalVal)) {
+            $lineHeight = self::DEFAULT_ROW_HEIGHT * \count(b($finalVal)->split("\n"));
+        }
+
+        if ($lineHeight > $rowDim->getRowHeight()) {
+            $rowDim->setRowHeight($lineHeight);
+        }
+    }
+
+    public function setResultError(int $rowIndex, $message): void
+    {
+        $sheet = $this->getActiveSheet();
         $statusColIndex = $this->getImportStatusIndex();
         $messageColIndex = $this->getImportMessageIndex();
 
-        foreach ($resources as $resource) {
-            $hasError = $resource->getErrors()->count() > 0;
+        $sheet->setCellValueByColumnAndRow($statusColIndex, $rowIndex, ResourceStatutes::ERROR);
+        $sheet->setCellValueByColumnAndRow($messageColIndex, $rowIndex, $message);
 
-            if ($hasError) {
-                $this->import->setErrorCount($this->import->getErrorCount() + 1);
-            } else {
-                $this->import->setSuccessCount($this->import->getSuccessCount() + 1);
-            }
-
-            // Inject Id
-            $id = $this->propertyAccessor->getValue($resource->getRealData(), $fieldIdentifier);
-            $sheet->setCellValueByColumnAndRow($idColIndex, $currentRowIndex, $id);
-
-            // Inject status
-            $sheet->setCellValueByColumnAndRow($statusColIndex, $currentRowIndex, $resource->getStatus());
-
-            // Inject message
-            $message = $hasError ? $this->buildErrors($resource->getErrors()) : null;
-            $sheet->setCellValueByColumnAndRow($messageColIndex, $currentRowIndex, $message);
-
-            ++$currentRowIndex;
-        }
+        $this->import->setErrorCount($this->import->getErrorCount() + 1);
     }
 
     public function saveImport(): ResourceInterface
@@ -238,22 +279,27 @@ class ImportContext implements ImportContextInterface
      * @param ConstraintViolationListInterface $violations The constraint violation
      * @param int                              $indent     The indentation
      */
-    private function buildErrors(ConstraintViolationListInterface $violations, int $indent = 0): string
+    private function buildErrors(FormErrorIterator $formErrors, int $indent = 0): string
     {
-        $indentStr = sprintf("%{$indent}s", ' ');
-        $message = PHP_EOL.$indentStr.'Errors:';
+        $titleField = $this->translator->trans('klipper_import.title_field');
+        $indentStr = sprintf("%{$indent}s", '');
+        $message = PHP_EOL.$indentStr.$this->translator->trans('klipper_import.title_errors');
 
-        /** @var ConstraintViolationInterface $violation */
-        foreach ($violations as $violation) {
+        /** @var FormError $formError */
+        foreach ($formErrors as $formError) {
             $message .= PHP_EOL.$indentStr.'  - ';
 
-            if (null !== $violation->getPropertyPath()) {
-                $message .= 'Field "'.$violation->getPropertyPath().'": ';
+            if (null !== $formError->getOrigin()->getParent()) {
+                $message .= $titleField.' "'.$formError->getOrigin()->getName().'": ';
             }
 
-            $message .= $violation->getMessage();
+            $message .= $formError->getMessage();
         }
 
-        return $message;
+        if (0 === \count($formErrors)) {
+            $message .= PHP_EOL.'  '.$this->translator->trans('klipper_import.error_without_message');
+        }
+
+        return trim($message);
     }
 }

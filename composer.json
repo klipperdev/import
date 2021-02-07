@@ -20,9 +20,11 @@
         "klipper/resource": "^2.0.0",
         "phpoffice/phpspreadsheet": "^1.15.0",
         "symfony/console": "^5.2.0",
+        "symfony/translation": "^5.2.0",
         "symfony/messenger": "^5.2.0",
         "symfony/mime": "^5.2.0",
-        "symfony/property-access": "^5.2.0"
+        "symfony/property-access": "^5.2.0",
+        "symfony/string": "^5.2.0"
     },
     "require-dev": {
         "klipper/security": "^2.0.0"
