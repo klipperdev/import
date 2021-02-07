@@ -13,6 +13,7 @@ namespace Klipper\Component\Import\Model;
 
 use Klipper\Component\Model\Traits\FilePathInterface;
 use Klipper\Component\Model\Traits\IdInterface;
+use Klipper\Component\Model\Traits\OrganizationalRequiredInterface;
 use Klipper\Component\Model\Traits\TimestampableInterface;
 use Klipper\Component\Model\Traits\UserTrackableInterface;
 
@@ -22,6 +23,7 @@ use Klipper\Component\Model\Traits\UserTrackableInterface;
 interface ImportInterface extends
     IdInterface,
     FilePathInterface,
+    OrganizationalRequiredInterface,
     TimestampableInterface,
     UserTrackableInterface
 {

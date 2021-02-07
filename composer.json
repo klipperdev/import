@@ -28,7 +28,7 @@
         "symfony/string": "^5.2.0"
     },
     "require-dev": {
-        "klipper/security": "^2.0.0"
+        "klipper/security-extra": "^2.0.0"
     },
     "autoload": {
         "psr-4": { "Klipper\\Component\\Import\\": "" },

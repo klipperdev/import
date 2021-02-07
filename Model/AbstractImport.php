@@ -16,6 +16,7 @@ use JMS\Serializer\Annotation as Serializer;
 use Klipper\Component\DoctrineExtensionsExtra\Mapping\Annotation\MetadataField;
 use Klipper\Component\Import\Validator\Constraints as KlipperImportAssert;
 use Klipper\Component\Model\Traits\FilePathTrait;
+use Klipper\Component\Model\Traits\OrganizationalRequiredTrait;
 use Klipper\Component\Model\Traits\TimestampableTrait;
 use Klipper\Component\Model\Traits\UserTrackableTrait;
 use Symfony\Component\Validator\Constraints as Assert;
@@ -28,6 +29,7 @@ use Symfony\Component\Validator\Constraints as Assert;
 abstract class AbstractImport implements ImportInterface
 {
     use FilePathTrait;
+    use OrganizationalRequiredTrait;
     use TimestampableTrait;
     use UserTrackableTrait;
 
