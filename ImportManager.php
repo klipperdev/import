@@ -13,6 +13,8 @@ namespace Klipper\Component\Import;
 
 use Klipper\Component\Content\ContentManagerInterface;
 use Klipper\Component\Import\Adapter\ImportAdapterInterface;
+use Klipper\Component\Import\Event\PostImportEvent;
+use Klipper\Component\Import\Event\PreImportEvent;
 use Klipper\Component\Import\Exception\ImportNotFoundException;
 use Klipper\Component\Import\Model\ImportInterface;
 use Klipper\Component\Metadata\MetadataManagerInterface;
@@ -23,6 +25,7 @@ use PhpOffice\PhpSpreadsheet\IOFactory;
 use PhpOffice\PhpSpreadsheet\Worksheet\Worksheet;
 use PhpOffice\PhpSpreadsheet\Writer\IWriter;
 use Symfony\Component\Form\FormFactoryInterface;
+use Symfony\Contracts\EventDispatcher\EventDispatcherInterface;
 use Symfony\Contracts\Translation\TranslatorInterface;
 
 /**
@@ -30,6 +33,8 @@ use Symfony\Contracts\Translation\TranslatorInterface;
  */
 class ImportManager implements ImportManagerInterface
 {
+    private EventDispatcherInterface $dispatcher;
+
     private FormFactoryInterface $formFactory;
 
     private TranslatorInterface $translator;
@@ -49,6 +54,7 @@ class ImportManager implements ImportManagerInterface
      * @param ImportAdapterInterface[] $adapters
      */
     public function __construct(
+        EventDispatcherInterface $dispatcher,
         FormFactoryInterface $formFactory,
         TranslatorInterface $translator,
         DomainManagerInterface $domainManager,
@@ -56,6 +62,7 @@ class ImportManager implements ImportManagerInterface
         MetadataManagerInterface $metadataManager,
         array $adapters
     ) {
+        $this->dispatcher = $dispatcher;
         $this->formFactory = $formFactory;
         $this->translator = $translator;
         $this->domainManager = $domainManager;
@@ -101,6 +108,8 @@ class ImportManager implements ImportManagerInterface
             throw new ImportNotFoundException(sprintf('The import with id "%s" has a non-existent metadata "%s"', $id, $import->getMetadata()));
         }
 
+        $this->dispatcher->dispatch(new PreImportEvent($import));
+
         $metadata = $this->metadataManager->getByName((string) $import->getMetadata());
         $domainTarget = $this->domainManager->get($metadata->getClass());
 
@@ -121,6 +130,7 @@ class ImportManager implements ImportManagerInterface
         }
 
         $this->finishImport($domainImport, $import, $hasError);
+        $this->dispatcher->dispatch(new PostImportEvent($import, $hasError));
 
         return $import;
     }
