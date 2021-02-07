@@ -18,6 +18,7 @@ use Klipper\Component\Metadata\ObjectMetadataInterface;
 use Klipper\Component\Resource\Domain\DomainInterface;
 use Klipper\Component\Resource\Domain\DomainManagerInterface;
 use PhpOffice\PhpSpreadsheet\Spreadsheet;
+use PhpOffice\PhpSpreadsheet\Worksheet\Worksheet;
 use PhpOffice\PhpSpreadsheet\Writer\IWriter;
 
 /**
@@ -47,6 +48,8 @@ class ImportContext implements ImportContextInterface
 
     private Spreadsheet $spreadsheet;
 
+    private Worksheet $activeSheet;
+
     private IWriter $writer;
 
     private string $file;
@@ -63,6 +66,7 @@ class ImportContext implements ImportContextInterface
         array $mappingFields,
         array $mappingAssociations,
         Spreadsheet $spreadsheet,
+        Worksheet $activeSheet,
         IWriter $writer,
         string $file
     ) {
@@ -77,6 +81,7 @@ class ImportContext implements ImportContextInterface
         $this->mappingFields = $mappingFields;
         $this->mappingAssociations = $mappingAssociations;
         $this->spreadsheet = $spreadsheet;
+        $this->activeSheet = $activeSheet;
         $this->writer = $writer;
         $this->file = $file;
     }
@@ -136,6 +141,11 @@ class ImportContext implements ImportContextInterface
         return $this->spreadsheet;
     }
 
+    public function getActiveSheet(): Worksheet
+    {
+        return $this->activeSheet;
+    }
+
     public function getWriter(): IWriter
     {
         return $this->writer;
@@ -149,5 +159,22 @@ class ImportContext implements ImportContextInterface
     public function saveWriter(): void
     {
         $this->writer->save($this->getFile());
+    }
+
+    public function getFieldIdentifierIndex(): int
+    {
+        $fieldIdentifier = $this->metadataTarget->getFieldIdentifier();
+
+        return $this->mappingColumns[$fieldIdentifier] ?? \count($this->mappingColumns) + 1;
+    }
+
+    public function getImportStatusIndex(): int
+    {
+        return $this->mappingColumns['@import_status'] ?? \count($this->mappingColumns) + 2;
+    }
+
+    public function getImportMessageIndex(): int
+    {
+        return $this->mappingColumns['@import_message'] ?? \count($this->mappingColumns) + 2;
     }
 }

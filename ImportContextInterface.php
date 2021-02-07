@@ -18,6 +18,7 @@ use Klipper\Component\Metadata\ObjectMetadataInterface;
 use Klipper\Component\Resource\Domain\DomainInterface;
 use Klipper\Component\Resource\Domain\DomainManagerInterface;
 use PhpOffice\PhpSpreadsheet\Spreadsheet;
+use PhpOffice\PhpSpreadsheet\Worksheet\Worksheet;
 use PhpOffice\PhpSpreadsheet\Writer\IWriter;
 
 /**
@@ -47,9 +48,17 @@ interface ImportContextInterface
 
     public function getSpreadsheet(): Spreadsheet;
 
+    public function getActiveSheet(): Worksheet;
+
     public function getWriter(): IWriter;
 
     public function getFile(): string;
 
     public function saveWriter(): void;
+
+    public function getFieldIdentifierIndex(): int;
+
+    public function getImportStatusIndex(): int;
+
+    public function getImportMessageIndex(): int;
 }

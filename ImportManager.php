@@ -20,6 +20,8 @@ use Klipper\Component\Metadata\ObjectMetadataInterface;
 use Klipper\Component\Resource\Domain\DomainInterface;
 use Klipper\Component\Resource\Domain\DomainManagerInterface;
 use PhpOffice\PhpSpreadsheet\IOFactory;
+use PhpOffice\PhpSpreadsheet\Worksheet\Worksheet;
+use PhpOffice\PhpSpreadsheet\Writer\IWriter;
 
 /**
  * @author François Pluchino <francois.pluchino@klipper.dev>
@@ -201,14 +203,17 @@ class ImportManager implements ImportManagerInterface
         $mappingColumns = [];
         $mappingFields = [];
         $mappingAssociations = [];
+        $lastIndex = 0;
 
         foreach ($columns as $column => $index) {
             if ($metadataTarget->hasFieldByName($column)) {
                 $mappingFields[$column] = $index;
                 $mappingColumns[$column] = $index;
+                ++$lastIndex;
             } elseif ($metadataTarget->hasAssociationByName($column)) {
                 $mappingAssociations[$column] = $index;
                 $mappingColumns[$column] = $index;
+                ++$lastIndex;
             }
         }
 
@@ -218,11 +223,15 @@ class ImportManager implements ImportManagerInterface
             $type = IOFactory::identify($file);
             $spreadsheet = IOFactory::load($file);
             $writer = IOFactory::createWriter($spreadsheet, $type);
+            $activeSheet = $spreadsheet->getActiveSheet();
         } catch (\Throwable $e) {
             $import->setStatusCode(ImportErrorCodes::UNREADABLE_FILE);
 
             return false;
         }
+
+        $import->setTotalCount($activeSheet->getHighestRow() - 1);
+        $this->prepareResultFile($metadataTarget, $activeSheet, $writer, $file, $mappingColumns, $lastIndex);
 
         $config = new ImportContext(
             $this->domainManager,
@@ -236,6 +245,7 @@ class ImportManager implements ImportManagerInterface
             $mappingFields,
             $mappingAssociations,
             $spreadsheet,
+            $activeSheet,
             $writer,
             $file
         );
@@ -266,6 +276,44 @@ class ImportManager implements ImportManagerInterface
             $import->setStatusCode(ImportErrorCodes::UNEXPECTED_ERROR);
 
             return false;
+        }
+    }
+
+    private function prepareResultFile(
+        ObjectMetadataInterface $metadataTarget,
+        Worksheet $activeSheet,
+        IWriter $writer,
+        string $file, array &$mappingColumns,
+        int &$lastIndex
+    ): void {
+        $sheetEdited = false;
+        $resizeColumns = [];
+        $newColumns = [
+            $metadataTarget->getFieldIdentifier(),
+            '@import_status',
+            '@import_message',
+        ];
+
+        foreach ($newColumns as $newColumn) {
+            if (!\array_key_exists($newColumn, $mappingColumns)) {
+                ++$lastIndex;
+                $sheetEdited = true;
+                $activeSheet->setCellValueByColumnAndRow($lastIndex, 1, $newColumn);
+                $mappingColumns[$newColumn] = $lastIndex;
+                $resizeColumns[$newColumn] = $lastIndex;
+
+                if ($metadataTarget->hasFieldByName($newColumn)) {
+                    $mappingFields[$newColumn] = $lastIndex;
+                }
+            }
+        }
+
+        if ($sheetEdited) {
+            foreach ($resizeColumns as $column => $index) {
+                $activeSheet->getColumnDimensionByColumn($index)->setAutoSize(true);
+            }
+
+            $writer->save($file);
         }
     }
 
