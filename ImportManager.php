@@ -57,6 +57,9 @@ class ImportManager implements ImportManagerInterface
         if (!\in_array($import->getStatus(), ['in_progress', 'success'], true)) {
             $import->setStatus('waiting');
             $import->setStatusCode(null);
+            $import->setTotalCount(0);
+            $import->setSuccessCount(0);
+            $import->setErrorCount(0);
             $import->setStartedAt(null);
             $import->setEndedAt(null);
 

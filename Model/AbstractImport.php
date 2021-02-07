@@ -76,6 +76,36 @@ abstract class AbstractImport implements ImportInterface
     protected ?string $statusCode = null;
 
     /**
+     * @ORM\Column(type="integer", nullable=true)
+     *
+     * @Assert\Type(type="integer")
+     *
+     * @Serializer\Expose
+     * @Serializer\ReadOnly
+     */
+    protected int $totalCount = 0;
+
+    /**
+     * @ORM\Column(type="integer", nullable=true)
+     *
+     * @Assert\Type(type="integer")
+     *
+     * @Serializer\Expose
+     * @Serializer\ReadOnly
+     */
+    protected int $successCount = 0;
+
+    /**
+     * @ORM\Column(type="integer", nullable=true)
+     *
+     * @Assert\Type(type="integer")
+     *
+     * @Serializer\Expose
+     * @Serializer\ReadOnly
+     */
+    protected int $errorCount = 0;
+
+    /**
      * @ORM\Column(type="datetime", nullable=true)
      *
      * @Serializer\Expose
@@ -181,6 +211,42 @@ abstract class AbstractImport implements ImportInterface
     public function getStatusCode(): ?string
     {
         return $this->statusCode;
+    }
+
+    public function setTotalCount(int $totalCount): self
+    {
+        $this->totalCount = $totalCount;
+
+        return $this;
+    }
+
+    public function getTotalCount(): int
+    {
+        return $this->totalCount;
+    }
+
+    public function setSuccessCount(int $successCount): self
+    {
+        $this->successCount = $successCount;
+
+        return $this;
+    }
+
+    public function getSuccessCount(): int
+    {
+        return $this->successCount;
+    }
+
+    public function setErrorCount(int $errorCount): self
+    {
+        $this->errorCount = $errorCount;
+
+        return $this;
+    }
+
+    public function getErrorCount(): int
+    {
+        return $this->errorCount;
     }
 
     public function setStartedAt(?\DateTimeInterface $startedAt): self

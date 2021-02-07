@@ -56,6 +56,27 @@ interface ImportInterface extends
     /**
      * @return static
      */
+    public function setTotalCount(int $totalCount);
+
+    public function getTotalCount(): int;
+
+    /**
+     * @return static
+     */
+    public function setSuccessCount(int $successCount);
+
+    public function getSuccessCount(): int;
+
+    /**
+     * @return static
+     */
+    public function setErrorCount(int $errorCount);
+
+    public function getErrorCount(): int;
+
+    /**
+     * @return static
+     */
     public function setStartedAt(?\DateTimeInterface $startedAt);
 
     public function getStartedAt(): ?\DateTimeInterface;
