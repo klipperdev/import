@@ -18,7 +18,7 @@ use Klipper\Component\Import\ImportContextInterface;
  */
 interface ImportAdapterInterface
 {
-    public function import(ImportContextInterface $config): bool;
+    public function import(ImportContextInterface $context): bool;
 
-    public function validate(ImportContextInterface $config): bool;
+    public function validate(ImportContextInterface $context): bool;
 }
