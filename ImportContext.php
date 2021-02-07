@@ -23,7 +23,7 @@ use PhpOffice\PhpSpreadsheet\Writer\IWriter;
 /**
  * @author François Pluchino <francois.pluchino@klipper.dev>
  */
-class ImportConfig implements ImportConfigInterface
+class ImportContext implements ImportContextInterface
 {
     private DomainManagerInterface $domainManager;
 

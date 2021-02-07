@@ -11,14 +11,14 @@
 
 namespace Klipper\Component\Import\Adapter;
 
-use Klipper\Component\Import\ImportConfigInterface;
+use Klipper\Component\Import\ImportContextInterface;
 
 /**
  * @author François Pluchino <francois.pluchino@klipper.dev>
  */
 interface ImportAdapterInterface
 {
-    public function import(ImportConfigInterface $config): bool;
+    public function import(ImportContextInterface $config): bool;
 
-    public function validate(ImportConfigInterface $config): bool;
+    public function validate(ImportContextInterface $config): bool;
 }

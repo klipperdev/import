@@ -221,7 +221,7 @@ class ImportManager implements ImportManagerInterface
             return false;
         }
 
-        $config = new ImportConfig(
+        $config = new ImportContext(
             $this->domainManager,
             $this->contentManager,
             $this->metadataManager,

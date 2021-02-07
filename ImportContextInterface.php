@@ -23,7 +23,7 @@ use PhpOffice\PhpSpreadsheet\Writer\IWriter;
 /**
  * @author François Pluchino <francois.pluchino@klipper.dev>
  */
-interface ImportConfigInterface
+interface ImportContextInterface
 {
     public function getDomainManager(): DomainManagerInterface;
 
@@ -50,4 +50,6 @@ interface ImportConfigInterface
     public function getWriter(): IWriter;
 
     public function getFile(): string;
+
+    public function saveWriter(): void;
 }
