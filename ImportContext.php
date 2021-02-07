@@ -17,9 +17,15 @@ use Klipper\Component\Metadata\MetadataManagerInterface;
 use Klipper\Component\Metadata\ObjectMetadataInterface;
 use Klipper\Component\Resource\Domain\DomainInterface;
 use Klipper\Component\Resource\Domain\DomainManagerInterface;
+use Klipper\Component\Resource\ResourceInterface;
+use Klipper\Component\Resource\ResourceListInterface;
 use PhpOffice\PhpSpreadsheet\Spreadsheet;
 use PhpOffice\PhpSpreadsheet\Worksheet\Worksheet;
 use PhpOffice\PhpSpreadsheet\Writer\IWriter;
+use Symfony\Component\PropertyAccess\PropertyAccess;
+use Symfony\Component\PropertyAccess\PropertyAccessorInterface;
+use Symfony\Component\Validator\ConstraintViolationInterface;
+use Symfony\Component\Validator\ConstraintViolationListInterface;
 
 /**
  * @author François Pluchino <francois.pluchino@klipper.dev>
@@ -54,6 +60,8 @@ class ImportContext implements ImportContextInterface
 
     private string $file;
 
+    private PropertyAccessorInterface $propertyAccessor;
+
     public function __construct(
         DomainManagerInterface $domainManager,
         ContentManagerInterface $contentManager,
@@ -68,7 +76,8 @@ class ImportContext implements ImportContextInterface
         Spreadsheet $spreadsheet,
         Worksheet $activeSheet,
         IWriter $writer,
-        string $file
+        string $file,
+        ?PropertyAccessorInterface $propertyAccessor = null
     ) {
         $this->domainManager = $domainManager;
         $this->contentManager = $contentManager;
@@ -84,6 +93,7 @@ class ImportContext implements ImportContextInterface
         $this->activeSheet = $activeSheet;
         $this->writer = $writer;
         $this->file = $file;
+        $this->propertyAccessor = $propertyAccessor ?? PropertyAccess::createPropertyAccessor();
     }
 
     public function getDomainManager(): DomainManagerInterface
@@ -181,5 +191,69 @@ class ImportContext implements ImportContextInterface
     public function getImportMessageIndex(): int
     {
         return $this->mappingColumns['@import_message'] ?? \count($this->mappingColumns) + 2;
+    }
+
+    public function setResult(ResourceListInterface $resourceList, int $rowIndex): void
+    {
+        $resources = $resourceList->getResources();
+        $currentRowIndex = $rowIndex;
+        $sheet = $this->getActiveSheet();
+        $fieldIdentifier = $this->metadataTarget->getFieldIdentifier();
+        $idColIndex = $this->getFieldIdentifierIndex();
+        $statusColIndex = $this->getImportStatusIndex();
+        $messageColIndex = $this->getImportMessageIndex();
+
+        foreach ($resources as $resource) {
+            $hasError = $resource->getErrors()->count() > 0;
+
+            if ($hasError) {
+                $this->import->setErrorCount($this->import->getErrorCount() + 1);
+            } else {
+                $this->import->setSuccessCount($this->import->getSuccessCount() + 1);
+            }
+
+            // Inject Id
+            $id = $this->propertyAccessor->getValue($resource->getRealData(), $fieldIdentifier);
+            $sheet->setCellValueByColumnAndRow($idColIndex, $currentRowIndex, $id);
+
+            // Inject status
+            $sheet->setCellValueByColumnAndRow($statusColIndex, $currentRowIndex, $resource->getStatus());
+
+            // Inject message
+            $message = $hasError ? $this->buildErrors($resource->getErrors()) : null;
+            $sheet->setCellValueByColumnAndRow($messageColIndex, $currentRowIndex, $message);
+
+            ++$currentRowIndex;
+        }
+    }
+
+    public function saveImport(): ResourceInterface
+    {
+        return $this->domainImport->update($this->import);
+    }
+
+    /**
+     * Build the errors message.
+     *
+     * @param ConstraintViolationListInterface $violations The constraint violation
+     * @param int                              $indent     The indentation
+     */
+    private function buildErrors(ConstraintViolationListInterface $violations, int $indent = 0): string
+    {
+        $indentStr = sprintf("%{$indent}s", ' ');
+        $message = PHP_EOL.$indentStr.'Errors:';
+
+        /** @var ConstraintViolationInterface $violation */
+        foreach ($violations as $violation) {
+            $message .= PHP_EOL.$indentStr.'  - ';
+
+            if (null !== $violation->getPropertyPath()) {
+                $message .= 'Field "'.$violation->getPropertyPath().'": ';
+            }
+
+            $message .= $violation->getMessage();
+        }
+
+        return $message;
     }
 }

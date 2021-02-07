@@ -17,6 +17,8 @@ use Klipper\Component\Metadata\MetadataManagerInterface;
 use Klipper\Component\Metadata\ObjectMetadataInterface;
 use Klipper\Component\Resource\Domain\DomainInterface;
 use Klipper\Component\Resource\Domain\DomainManagerInterface;
+use Klipper\Component\Resource\ResourceInterface;
+use Klipper\Component\Resource\ResourceListInterface;
 use PhpOffice\PhpSpreadsheet\Spreadsheet;
 use PhpOffice\PhpSpreadsheet\Worksheet\Worksheet;
 use PhpOffice\PhpSpreadsheet\Writer\IWriter;
@@ -63,4 +65,8 @@ interface ImportContextInterface
     public function getImportStatusIndex(): int;
 
     public function getImportMessageIndex(): int;
+
+    public function setResult(ResourceListInterface $resourceList, int $rowIndex): void;
+
+    public function saveImport(): ResourceInterface;
 }
