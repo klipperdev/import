@@ -156,6 +156,11 @@ class ImportContext implements ImportContextInterface
         return $this->file;
     }
 
+    public function getLocale(): string
+    {
+        return $this->import->getLocale() ?? 'en';
+    }
+
     public function saveWriter(): void
     {
         $this->writer->save($this->getFile());

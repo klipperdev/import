@@ -76,6 +76,16 @@ abstract class AbstractImport implements ImportInterface
     protected ?string $statusCode = null;
 
     /**
+     * @ORM\Column(type="string", length=5, nullable=true)
+     *
+     * @Assert\Type(type="string")
+     * @Assert\Length(min=0, max=5)
+     *
+     * @Serializer\Expose
+     */
+    protected ?string $locale = null;
+
+    /**
      * @ORM\Column(type="integer", nullable=true)
      *
      * @Assert\Type(type="integer")
@@ -198,9 +208,6 @@ abstract class AbstractImport implements ImportInterface
         return $this->status;
     }
 
-    /**
-     * @return static
-     */
     public function setStatusCode(?string $statusCode): self
     {
         $this->statusCode = $statusCode;
@@ -211,6 +218,18 @@ abstract class AbstractImport implements ImportInterface
     public function getStatusCode(): ?string
     {
         return $this->statusCode;
+    }
+
+    public function setLocale(?string $locale): self
+    {
+        $this->locale = $locale;
+
+        return $this;
+    }
+
+    public function getLocale(): ?string
+    {
+        return $this->locale;
     }
 
     public function setTotalCount(int $totalCount): self

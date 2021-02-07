@@ -12,6 +12,7 @@
 namespace Klipper\Component\Import\Doctrine\Listener;
 
 use Doctrine\Common\EventSubscriber;
+use Doctrine\ORM\Event\LifecycleEventArgs;
 use Doctrine\ORM\Event\OnFlushEventArgs;
 use Doctrine\ORM\Events;
 use Klipper\Component\DoctrineExtensionsExtra\Util\ListenerUtil;
@@ -35,8 +36,26 @@ class ImportSubscriber implements EventSubscriber
     public function getSubscribedEvents(): array
     {
         return [
+            Events::prePersist,
+            Events::preUpdate,
             Events::onFlush,
         ];
+    }
+
+    public function prePersist(LifecycleEventArgs $event): void
+    {
+        $this->preUpdate($event);
+    }
+
+    public function preUpdate(LifecycleEventArgs $event): void
+    {
+        $object = $event->getObject();
+
+        if ($object instanceof ImportInterface) {
+            if (null === $object->getLocale()) {
+                $object->setLocale(\Locale::getDefault());
+            }
+        }
     }
 
     /**

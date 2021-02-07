@@ -56,6 +56,13 @@ interface ImportInterface extends
     /**
      * @return static
      */
+    public function setLocale(?string $locale);
+
+    public function getLocale(): ?string;
+
+    /**
+     * @return static
+     */
     public function setTotalCount(int $totalCount);
 
     public function getTotalCount(): int;

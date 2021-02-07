@@ -54,6 +54,8 @@ interface ImportContextInterface
 
     public function getFile(): string;
 
+    public function getLocale(): string;
+
     public function saveWriter(): void;
 
     public function getFieldIdentifierIndex(): int;
