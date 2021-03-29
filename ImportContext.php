@@ -23,12 +23,11 @@ use PhpOffice\PhpSpreadsheet\Spreadsheet;
 use PhpOffice\PhpSpreadsheet\Worksheet\Worksheet;
 use PhpOffice\PhpSpreadsheet\Writer\IWriter;
 use Symfony\Component\Form\FormError;
-use Symfony\Component\Form\FormErrorIterator;
 use Symfony\Component\Form\FormFactoryInterface;
 use Symfony\Component\PropertyAccess\PropertyAccess;
 use Symfony\Component\PropertyAccess\PropertyAccessorInterface;
 use function Symfony\Component\String\b;
-use Symfony\Component\Validator\ConstraintViolationListInterface;
+use Symfony\Component\Validator\ConstraintViolationInterface;
 use Symfony\Contracts\Translation\TranslatorInterface;
 
 /**
@@ -240,7 +239,7 @@ class ImportContext implements ImportContextInterface
         $sheet->setCellValueByColumnAndRow($this->getImportStatusIndex(), $rowIndex, $resource->getStatus());
 
         // Inject message
-        $message = $resource->isValid() ? null : $this->buildErrors($resource->getFormErrors());
+        $message = $resource->isValid() ? null : $this->buildErrors($resource);
         $sheet->setCellValueByColumnAndRow($this->getImportMessageIndex(), $rowIndex, $message);
 
         $rowDim = $sheet->getRowDimension($rowIndex);
@@ -276,11 +275,14 @@ class ImportContext implements ImportContextInterface
     /**
      * Build the errors message.
      *
-     * @param ConstraintViolationListInterface $violations The constraint violation
-     * @param int                              $indent     The indentation
+     * @param ResourceInterface $resource The resource
+     * @param int               $indent   The indentation
      */
-    private function buildErrors(FormErrorIterator $formErrors, int $indent = 0): string
+    private function buildErrors(ResourceInterface $resource, int $indent = 0): string
     {
+        $formErrors = $resource->getFormErrors();
+        $rootErrors = $resource->getErrors();
+
         $titleField = $this->translator->trans('klipper_import.title_field');
         $indentStr = sprintf("%{$indent}s", '');
         $message = PHP_EOL.$indentStr.$this->translator->trans('klipper_import.title_errors');
@@ -296,7 +298,12 @@ class ImportContext implements ImportContextInterface
             $message .= $formError->getMessage();
         }
 
-        if (0 === \count($formErrors)) {
+        if ($rootErrors->count() > 0) {
+            /** @var ConstraintViolationInterface $rootError */
+            foreach ($rootErrors as $rootError) {
+                $message .= PHP_EOL.'  '.$rootError->getMessage();
+            }
+        } elseif (0 === \count($formErrors)) {
             $message .= PHP_EOL.'  '.$this->translator->trans('klipper_import.error_without_message');
         }
 
