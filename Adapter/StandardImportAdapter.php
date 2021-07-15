@@ -12,7 +12,7 @@
 namespace Klipper\Component\Import\Adapter;
 
 use Klipper\Component\Import\ImportContextInterface;
-use Klipper\Component\Resource\Domain\DomainInterface;
+use Symfony\Component\Form\FormInterface;
 use Symfony\Contracts\Translation\LocaleAwareInterface;
 use Symfony\Contracts\Translation\TranslatorInterface;
 
@@ -21,10 +21,14 @@ use Symfony\Contracts\Translation\TranslatorInterface;
  */
 class StandardImportAdapter implements ImportAdapterInterface
 {
+    public function validate(ImportContextInterface $context): bool
+    {
+        return true;
+    }
+
     public function import(ImportContextInterface $context): bool
     {
         $translator = $context->getTranslator();
-        $formFactory = $context->getFormFactory();
         $sheet = $context->getActiveSheet();
         $domainTarget = $context->getDomainTarget();
         $metaTarget = $context->getMetadataTarget();
@@ -33,8 +37,6 @@ class StandardImportAdapter implements ImportAdapterInterface
         $locale = $context->getLocale();
         $prevLocale = \Locale::getDefault();
         $rowIterator = $sheet->getRowIterator(2);
-        $formType = $metaTarget->getFormType();
-        $formOptions = array_merge($metaTarget->getFormOptions(), ['csrf_protection' => false]);
         $batchSize = 20;
         $i = 0;
         $finalRes = true;
@@ -62,7 +64,7 @@ class StandardImportAdapter implements ImportAdapterInterface
                 $data[$association] = $sheet->getCellByColumnAndRow($colIndex, $rowIndex)->getValue();
             }
 
-            $object = $this->findObject($domainTarget, $fieldIdentifierValue);
+            $object = $this->findObject($context, $fieldIdentifierValue, $data);
 
             if (null === $object) {
                 $context->setResultError(
@@ -70,7 +72,7 @@ class StandardImportAdapter implements ImportAdapterInterface
                     $translator->trans('domain.object_does_not_exist', [], 'KlipperResource')
                 );
             } else {
-                $form = $formFactory->create($formType, $object, $formOptions);
+                $form = $this->createForm($context, $object);
                 $form->submit($data, false);
                 $res = $domainTarget->upsert($form);
 
@@ -95,13 +97,10 @@ class StandardImportAdapter implements ImportAdapterInterface
         return $finalRes;
     }
 
-    public function validate(ImportContextInterface $context): bool
+    protected function findObject(ImportContextInterface $context, $id, array $data): ?object
     {
-        return true;
-    }
+        $domainTarget = $context->getDomainTarget();
 
-    private function findObject(DomainInterface $domainTarget, $id): ?object
-    {
         if (null !== $id) {
             return $domainTarget->getRepository()->find($id);
         }
@@ -109,7 +108,17 @@ class StandardImportAdapter implements ImportAdapterInterface
         return $domainTarget->newInstance();
     }
 
-    private function setLocale(TranslatorInterface $translator, string $locale): void
+    protected function createForm(ImportContextInterface $context, object $object): FormInterface
+    {
+        $metaTarget = $context->getMetadataTarget();
+        $formFactory = $context->getFormFactory();
+        $formType = $metaTarget->getFormType();
+        $formOptions = array_merge($metaTarget->getFormOptions(), ['csrf_protection' => false]);
+
+        return $formFactory->create($formType, $object, $formOptions);
+    }
+
+    protected function setLocale(TranslatorInterface $translator, string $locale): void
     {
         \Locale::setDefault($locale);
 
