@@ -12,6 +12,7 @@
 namespace Klipper\Component\Import\Adapter;
 
 use Klipper\Component\Import\ImportContextInterface;
+use PhpOffice\PhpSpreadsheet\Worksheet\Row;
 use Symfony\Component\Form\FormInterface;
 use Symfony\Contracts\Translation\LocaleAwareInterface;
 use Symfony\Contracts\Translation\TranslatorInterface;
@@ -45,7 +46,6 @@ class StandardImportAdapter implements ImportAdapterInterface
 
         foreach ($rowIterator as $row) {
             $rowIndex = $row->getRowIndex();
-            $data = [];
             $fieldIdentifierValue = null;
 
             if (\array_key_exists($fieldIdentifier, $mappingColumns)) {
@@ -56,14 +56,7 @@ class StandardImportAdapter implements ImportAdapterInterface
                 }
             }
 
-            foreach ($context->getMappingFields() as $field => $colIndex) {
-                $data[$field] = $sheet->getCellByColumnAndRow($colIndex, $rowIndex)->getValue();
-            }
-
-            foreach ($context->getMappingAssociations() as $association => $colIndex) {
-                $data[$association] = $sheet->getCellByColumnAndRow($colIndex, $rowIndex)->getValue();
-            }
-
+            $data = $this->buildData($context, $row);
             $object = $this->findObject($context, $fieldIdentifierValue, $data);
 
             if (null === $object) {
@@ -95,6 +88,23 @@ class StandardImportAdapter implements ImportAdapterInterface
         $this->setLocale($translator, $prevLocale);
 
         return $finalRes;
+    }
+
+    protected function buildData(ImportContextInterface $context, Row $row): array
+    {
+        $sheet = $context->getActiveSheet();
+        $rowIndex = $row->getRowIndex();
+        $data = [];
+
+        foreach ($context->getMappingFields() as $field => $colIndex) {
+            $data[$field] = $sheet->getCellByColumnAndRow($colIndex, $rowIndex)->getValue();
+        }
+
+        foreach ($context->getMappingAssociations() as $association => $colIndex) {
+            $data[$association] = $sheet->getCellByColumnAndRow($colIndex, $rowIndex)->getValue();
+        }
+
+        return $data;
     }
 
     protected function findObject(ImportContextInterface $context, $id, array $data): ?object
