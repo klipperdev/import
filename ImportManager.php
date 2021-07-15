@@ -333,7 +333,7 @@ class ImportManager implements ImportManagerInterface
         }
 
         if ($sheetEdited) {
-            foreach ($resizeColumns as $column => $index) {
+            foreach ($resizeColumns as $index) {
                 $activeSheet->getColumnDimensionByColumn($index)->setAutoSize(true);
             }
 
@@ -341,11 +341,11 @@ class ImportManager implements ImportManagerInterface
         }
     }
 
-    private function finishImport(DomainInterface $domainImport, ImportInterface $import, bool $hasError): bool
+    private function finishImport(DomainInterface $domainImport, ImportInterface $import, bool $hasError): void
     {
         $import->setStatus($hasError ? 'error' : 'success');
         $import->setEndedAt(new \DateTime());
 
-        return $domainImport->update($import)->isValid();
+        $domainImport->update($import);
     }
 }
