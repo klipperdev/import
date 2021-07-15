@@ -62,6 +62,26 @@ interface ImportInterface extends
 
     public function getLocale(): ?string;
 
+    public function getExtra(): array;
+
+    public function hasExtra(string $key): bool;
+
+    /**
+     * @return null|mixed
+     */
+    public function getExtraValue(string $key);
+
+    public function setExtra(array $extra): void;
+
+    /**
+     * @param null|mixed $value
+     */
+    public function addExtra(string $extra, $value): void;
+
+    public function removeExtra(string $key): void;
+
+    public function clearExtra(): void;
+
     /**
      * @return static
      */

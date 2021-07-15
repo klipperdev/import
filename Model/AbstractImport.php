@@ -88,6 +88,13 @@ abstract class AbstractImport implements ImportInterface
     protected ?string $locale = null;
 
     /**
+     * @ORM\Column(type="json")
+     *
+     * @Serializer\Expose
+     */
+    protected array $extra = [];
+
+    /**
      * @ORM\Column(type="integer", nullable=true)
      *
      * @Assert\Type(type="integer")
@@ -232,6 +239,47 @@ abstract class AbstractImport implements ImportInterface
     public function getLocale(): ?string
     {
         return $this->locale;
+    }
+
+    public function getExtra(): array
+    {
+        return $this->extra ?? [];
+    }
+
+    public function hasExtra(string $key): bool
+    {
+        return isset($this->extra[$key]);
+    }
+
+    public function getExtraValue(string $key)
+    {
+        return $this->extra[$key] ?? null;
+    }
+
+    public function setExtra(array $extra): void
+    {
+        foreach ($extra as $key => $value) {
+            if (empty($value)) {
+                $this->removeExtra($key);
+            } else {
+                $this->addExtra($key, $value);
+            }
+        }
+    }
+
+    public function addExtra(string $extra, $value): void
+    {
+        $this->extra[$extra] = $value;
+    }
+
+    public function removeExtra(string $key): void
+    {
+        unset($this->extra[$key]);
+    }
+
+    public function clearExtra(): void
+    {
+        $this->extra = [];
     }
 
     public function setTotalCount(int $totalCount): self
