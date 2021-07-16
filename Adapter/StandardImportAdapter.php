@@ -40,6 +40,7 @@ class StandardImportAdapter implements ImportAdapterInterface
         $rowIterator = $sheet->getRowIterator(2);
         $batchSize = 20;
         $i = 0;
+        $countRow = 0;
         $finalRes = true;
 
         $this->setLocale($translator, $locale);
@@ -57,13 +58,21 @@ class StandardImportAdapter implements ImportAdapterInterface
             }
 
             $data = $this->buildData($context, $row);
+
+            if ($this->isEmptyData($data)) {
+                $context->getImport()->setTotalCount($countRow);
+                $context->saveWriter();
+                $context->saveImport();
+
+                break;
+            }
             $object = $this->findObject($context, $fieldIdentifierValue, $data);
 
             if (null === $object) {
                 $context->setResultError(
-                    $rowIndex,
-                    $translator->trans('domain.object_does_not_exist', [], 'KlipperResource')
-                );
+                        $rowIndex,
+                        $translator->trans('domain.object_does_not_exist', [], 'KlipperResource')
+                    );
             } else {
                 $form = $this->createForm($context, $object);
                 $form->submit($data, false);
@@ -79,6 +88,7 @@ class StandardImportAdapter implements ImportAdapterInterface
             }
 
             ++$i;
+            ++$countRow;
         }
 
         $sheet->getColumnDimensionByColumn($context->getFieldIdentifierIndex())->setAutoSize(true);
@@ -135,5 +145,16 @@ class StandardImportAdapter implements ImportAdapterInterface
         if ($translator instanceof LocaleAwareInterface) {
             $translator->setLocale($locale);
         }
+    }
+
+    protected function isEmptyData(array $data): bool
+    {
+        foreach ($data as $value) {
+            if (null !== $value && '' !== $value) {
+                return false;
+            }
+        }
+
+        return true;
     }
 }
