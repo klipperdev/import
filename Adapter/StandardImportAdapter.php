@@ -12,6 +12,7 @@
 namespace Klipper\Component\Import\Adapter;
 
 use Klipper\Component\Import\ImportContextInterface;
+use Klipper\Component\Resource\ResourceInterface;
 use PhpOffice\PhpSpreadsheet\Worksheet\Row;
 use Symfony\Component\Form\FormInterface;
 use Symfony\Contracts\Translation\LocaleAwareInterface;
@@ -78,6 +79,8 @@ class StandardImportAdapter implements ImportAdapterInterface
                 $form->submit($data, false);
                 $res = $domainTarget->upsert($form);
 
+                $this->hookAfterUpsert($context, $res);
+
                 $finalRes = $finalRes && $res->isValid();
                 $context->setResult($res, $rowIndex);
             }
@@ -136,6 +139,11 @@ class StandardImportAdapter implements ImportAdapterInterface
         $formOptions = array_merge($metaTarget->getFormOptions(), ['csrf_protection' => false]);
 
         return $formFactory->create($formType, $object, $formOptions);
+    }
+
+    protected function hookAfterUpsert(ImportContextInterface $context, ResourceInterface $result): void
+    {
+        // Override this method
     }
 
     protected function setLocale(TranslatorInterface $translator, string $locale): void
