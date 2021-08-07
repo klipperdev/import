@@ -41,7 +41,7 @@ abstract class AbstractImport implements ImportInterface
      * @Assert\NotBlank
      *
      * @Serializer\Expose
-     * @Serializer\ReadOnly
+     * @Serializer\ReadOnlyProperty
      */
     protected ?string $metadata = null;
 
@@ -62,7 +62,7 @@ abstract class AbstractImport implements ImportInterface
      * @Assert\NotBlank
      *
      * @Serializer\Expose
-     * @Serializer\ReadOnly
+     * @Serializer\ReadOnlyProperty
      */
     protected ?string $status = null;
 
@@ -73,7 +73,7 @@ abstract class AbstractImport implements ImportInterface
      * @Assert\Length(min=0, max=65535)
      *
      * @Serializer\Expose
-     * @Serializer\ReadOnly
+     * @Serializer\ReadOnlyProperty
      */
     protected ?string $statusCode = null;
 
@@ -100,7 +100,7 @@ abstract class AbstractImport implements ImportInterface
      * @Assert\Type(type="integer")
      *
      * @Serializer\Expose
-     * @Serializer\ReadOnly
+     * @Serializer\ReadOnlyProperty
      */
     protected int $totalCount = 0;
 
@@ -110,7 +110,7 @@ abstract class AbstractImport implements ImportInterface
      * @Assert\Type(type="integer")
      *
      * @Serializer\Expose
-     * @Serializer\ReadOnly
+     * @Serializer\ReadOnlyProperty
      */
     protected int $successCount = 0;
 
@@ -120,7 +120,7 @@ abstract class AbstractImport implements ImportInterface
      * @Assert\Type(type="integer")
      *
      * @Serializer\Expose
-     * @Serializer\ReadOnly
+     * @Serializer\ReadOnlyProperty
      */
     protected int $errorCount = 0;
 
@@ -128,7 +128,7 @@ abstract class AbstractImport implements ImportInterface
      * @ORM\Column(type="datetime", nullable=true)
      *
      * @Serializer\Expose
-     * @Serializer\ReadOnly
+     * @Serializer\ReadOnlyProperty
      */
     protected ?\DateTimeInterface $startedAt = null;
 
@@ -136,7 +136,7 @@ abstract class AbstractImport implements ImportInterface
      * @ORM\Column(type="datetime", nullable=true)
      *
      * @Serializer\Expose
-     * @Serializer\ReadOnly
+     * @Serializer\ReadOnlyProperty
      */
     protected ?\DateTimeInterface $endedAt = null;
 
@@ -147,7 +147,7 @@ abstract class AbstractImport implements ImportInterface
      * @Assert\Length(max=255)
      *
      * @Serializer\Expose
-     * @Serializer\ReadOnly
+     * @Serializer\ReadOnlyProperty
      * @Serializer\SerializedName("original_file_url")
      * @Serializer\Type("OrgUrl<'klipper_apiimport_import_downloadoriginal', 'id=`{{id}}`'>")
      *
@@ -166,7 +166,7 @@ abstract class AbstractImport implements ImportInterface
      * @Assert\Length(max=255)
      *
      * @Serializer\Expose
-     * @Serializer\ReadOnly
+     * @Serializer\ReadOnlyProperty
      * @Serializer\SerializedName("result_file_url")
      * @Serializer\Type("OrgUrl<'klipper_apiimport_import_downloadresult', 'id=`{{id}}`'>")
      *
