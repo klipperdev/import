@@ -307,7 +307,8 @@ class ImportManager implements ImportManagerInterface
         ObjectMetadataInterface $metadataTarget,
         Worksheet $activeSheet,
         IWriter $writer,
-        string $file, array &$mappingColumns,
+        string $file,
+        array &$mappingColumns,
         int &$lastIndex
     ): void {
         $sheetEdited = false;

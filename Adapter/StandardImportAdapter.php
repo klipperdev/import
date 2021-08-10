@@ -71,9 +71,9 @@ class StandardImportAdapter implements ImportAdapterInterface
 
             if (null === $object) {
                 $context->setResultError(
-                        $rowIndex,
-                        $translator->trans('domain.object_does_not_exist', [], 'KlipperResource')
-                    );
+                    $rowIndex,
+                    $translator->trans('domain.object_does_not_exist', [], 'KlipperResource')
+                );
             } else {
                 $form = $this->createForm($context, $object);
                 $form->submit($data, false);
