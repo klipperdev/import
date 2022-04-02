@@ -68,6 +68,7 @@ class RetryCommand extends Command
 
         $domainImport = $this->domainManager->get(ImportInterface::class);
         $repo = $domainImport->getRepository();
+
         /** @var null|ImportInterface $import */
         $import = $repo->find($id);
 

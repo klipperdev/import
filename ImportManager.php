@@ -95,6 +95,7 @@ class ImportManager implements ImportManagerInterface
         $id = $import instanceof ImportInterface ? $import->getId() : $import;
         $domainImport = $this->domainManager->get(ImportInterface::class);
         $repo = $domainImport->getRepository();
+
         /** @var null|ImportInterface $import */
         $import = $repo->find($id);
         $columns = [];
