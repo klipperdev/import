@@ -35,11 +35,9 @@ abstract class AbstractImport implements ImportInterface
 
     /**
      * @ORM\Column(type="string", length=128, nullable=true)
-     *
      * @Assert\Type(type="string")
      * @Assert\Length(min=0, max=128)
      * @Assert\NotBlank
-     *
      * @Serializer\Expose
      * @Serializer\ReadOnlyProperty
      */
@@ -47,7 +45,6 @@ abstract class AbstractImport implements ImportInterface
 
     /**
      * @ORM\Column(type="string", length=128, nullable=true)
-     *
      * @Assert\Type(type="string")
      * @Assert\Length(min=0, max=128)
      */
@@ -55,12 +52,10 @@ abstract class AbstractImport implements ImportInterface
 
     /**
      * @ORM\Column(type="string", length=128, nullable=true)
-     *
      * @KlipperImportAssert\ImportStatusChoice
      * @Assert\Type(type="string")
      * @Assert\Length(min=0, max=128)
      * @Assert\NotBlank
-     *
      * @Serializer\Expose
      * @Serializer\ReadOnlyProperty
      */
@@ -68,10 +63,8 @@ abstract class AbstractImport implements ImportInterface
 
     /**
      * @ORM\Column(type="text", nullable=true)
-     *
      * @Assert\Type(type="string")
      * @Assert\Length(min=0, max=65535)
-     *
      * @Serializer\Expose
      * @Serializer\ReadOnlyProperty
      */
@@ -79,26 +72,21 @@ abstract class AbstractImport implements ImportInterface
 
     /**
      * @ORM\Column(type="string", length=5, nullable=true)
-     *
      * @Assert\Type(type="string")
      * @Assert\Length(min=0, max=5)
-     *
      * @Serializer\Expose
      */
     protected ?string $locale = null;
 
     /**
      * @ORM\Column(type="json")
-     *
      * @Serializer\Expose
      */
     protected array $extra = [];
 
     /**
      * @ORM\Column(type="integer", nullable=true)
-     *
      * @Assert\Type(type="integer")
-     *
      * @Serializer\Expose
      * @Serializer\ReadOnlyProperty
      */
@@ -106,9 +94,7 @@ abstract class AbstractImport implements ImportInterface
 
     /**
      * @ORM\Column(type="integer", nullable=true)
-     *
      * @Assert\Type(type="integer")
-     *
      * @Serializer\Expose
      * @Serializer\ReadOnlyProperty
      */
@@ -116,9 +102,7 @@ abstract class AbstractImport implements ImportInterface
 
     /**
      * @ORM\Column(type="integer", nullable=true)
-     *
      * @Assert\Type(type="integer")
-     *
      * @Serializer\Expose
      * @Serializer\ReadOnlyProperty
      */
@@ -126,7 +110,6 @@ abstract class AbstractImport implements ImportInterface
 
     /**
      * @ORM\Column(type="datetime", nullable=true)
-     *
      * @Serializer\Expose
      * @Serializer\ReadOnlyProperty
      */
@@ -134,7 +117,6 @@ abstract class AbstractImport implements ImportInterface
 
     /**
      * @ORM\Column(type="datetime", nullable=true)
-     *
      * @Serializer\Expose
      * @Serializer\ReadOnlyProperty
      */
@@ -142,15 +124,12 @@ abstract class AbstractImport implements ImportInterface
 
     /**
      * @ORM\Column(type="string", length=255, nullable=true)
-     *
      * @Assert\Type(type="string")
      * @Assert\Length(max=255)
-     *
      * @Serializer\Expose
      * @Serializer\ReadOnlyProperty
      * @Serializer\SerializedName("original_file_url")
      * @Serializer\Type("OrgUrl<'klipper_apiimport_import_downloadoriginal', 'id=`{{id}}`'>")
-     *
      * @MetadataField(
      *     sortable=false,
      *     filterable=false,
@@ -161,15 +140,12 @@ abstract class AbstractImport implements ImportInterface
 
     /**
      * @ORM\Column(type="string", length=255, nullable=true)
-     *
      * @Assert\Type(type="string")
      * @Assert\Length(max=255)
-     *
      * @Serializer\Expose
      * @Serializer\ReadOnlyProperty
      * @Serializer\SerializedName("result_file_url")
      * @Serializer\Type("OrgUrl<'klipper_apiimport_import_downloadresult', 'id=`{{id}}`'>")
-     *
      * @MetadataField(
      *     sortable=false,
      *     filterable=false,
